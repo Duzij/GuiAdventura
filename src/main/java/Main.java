@@ -11,6 +11,9 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
+
+
+
         Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
         primaryStage.setTitle("Hello World");
         primaryStage.setScene(new Scene(root, 600, 400));
@@ -20,10 +23,14 @@ public class Main extends Application {
 
 
     public static void main(String[] args) {
-        IGame hra = new Game();
-        TextInterface ui = new TextInterface(hra);
-        //ui.play();
-
-        launch(args);
+        if (args.length > 0 && args[0].equals("-t"))
+        {
+            IGame hra = new Game();
+            TextInterface ui = new TextInterface(hra);
+            ui.play();
+        }
+        else {
+            launch(args);
+        }
     }
 }
