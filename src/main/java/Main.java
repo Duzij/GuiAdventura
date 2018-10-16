@@ -1,3 +1,4 @@
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.Loader;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -11,11 +12,15 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getResource("main.fxml"));
 
+        Parent root = loader.load();
 
+        MainController c = loader.getController();
+        c.Init(new Game());
 
-        Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
-        primaryStage.setTitle("Hello World");
+        primaryStage.setTitle("Adventůra - útěk z vězení");
         primaryStage.setScene(new Scene(root, 600, 400));
         primaryStage.setResizable(false);
         primaryStage.show();
@@ -23,10 +28,11 @@ public class Main extends Application {
 
 
     public static void main(String[] args) {
-        if (args.length > 0 && args[0].equals("-t"))
+        IGame game = new Game();
+
+        if (args.length > 0 && args[0].equals("-text"))
         {
-            IGame hra = new Game();
-            TextInterface ui = new TextInterface(hra);
+            TextInterface ui = new TextInterface(game);
             ui.play();
         }
         else {

@@ -2,6 +2,8 @@ package logika;
 
 
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import logika.commands.*;
 import logika.situations.*;
 
@@ -195,5 +197,10 @@ public class GamePlan {
 
     public void setHelpedGuy(Boolean helpedGuy) {
         this.helpedGuy = helpedGuy;
+    }
+
+    public ObservableList getCommands() {
+        String commands = this.getCurrentRoomCommads().returnCommandList() + this.getGlobalCommads().returnCommandList();
+        return FXCollections.observableArrayList(commands.split(" "));
     }
 }

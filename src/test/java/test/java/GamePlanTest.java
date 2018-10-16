@@ -61,4 +61,5 @@ public class GamePlanTest
 
         assertFalse(plan.getCurrentRoom().getRoomCommands().isValidCommand("posilovat"));
     }
+
 }
