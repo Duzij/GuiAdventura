@@ -7,7 +7,8 @@ import javafx.collections.ObservableList;
 import logika.commands.*;
 import logika.situations.*;
 
-import java.util.HashSet;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Class GamePlan - třída představující mapu a stav adventury.
@@ -29,6 +30,7 @@ public class GamePlan {
     private int power;
     private HashSet<String> playerItems = new HashSet();
     private Boolean helpedGuy;
+    private final List<ChangeRoomListener> listeners = new ArrayList();
 
     public CommandList getGlobalCommads() {
         return globalCommads;
@@ -42,7 +44,10 @@ public class GamePlan {
 
     private CommandList currentRoomCommads;    // seznam příkazů, které jsou dostupné ve konkrétní místnostech
 
-
+    public void addListener(ChangeRoomListener listener)
+    {
+        listeners.add(listener);
+    }
     /**
      *  Konstruktor který vytváří jednotlivé Roomy a propojuje je pomocí východů.
      *  Jako výchozí aktuální Room nastaví halu.
@@ -150,6 +155,11 @@ public class GamePlan {
     public void setCurrentRoom(Room Room) {
         currentRoom = Room;
         currentRoomCommads = Room.getRoomCommands();
+
+        for(ChangeRoomListener listener : listeners)
+        {
+            listener.onChange();
+        }
     }
 
     public int getCigarettesCount() {
@@ -197,6 +207,15 @@ public class GamePlan {
 
     public void setHelpedGuy(Boolean helpedGuy) {
         this.helpedGuy = helpedGuy;
+    }
+
+    public String getDirections()
+    {
+        String text = "Směry: ";
+        for (Room r : getCurrentRoom().getExits()) {
+            text += " " + r.getName();
+        }
+        return text;
     }
 
     public ObservableList getCommands() {

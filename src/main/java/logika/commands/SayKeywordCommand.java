@@ -29,7 +29,7 @@ public class SayKeywordCommand implements ICommand {
             return plan.getCurrentRoom().getSituation(ShopEnterSituation.class.getName()).getPositiveAnswerConsequences();
         }
         else{
-            return plan.getCurrentRoom().getSituation(ShopEnterSituation.class.getName()).getPositiveAnswerConsequences();
+            return plan.getCurrentRoom().getSituation(ShopEnterSituation.class.getName()).getNegativeAnswerConsequences();
         }
     }
 
