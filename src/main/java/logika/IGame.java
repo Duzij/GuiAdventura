@@ -53,6 +53,8 @@ public interface IGame {
      */
     GamePlan getGamePlan();
 
+    void startNewGame();
+
     //== ZDĚDĚNÉ METODY ========================================================
     //== INTERNÍ DATOVÉ TYPY ===================================================
 }

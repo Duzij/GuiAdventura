@@ -120,14 +120,14 @@ public class CommandList {
     }
 
     /**
-     * Vrací seznam přípustných příkazů, jednotlivé příkazy jsou odděleny mezerou.
+     * Vrací seznam přípustných příkazů, jednotlivé příkazy jsou oddělené středníkem.
      *
      * @return Řetězec, který obsahuje seznam přípustných příkazů
      */
     public String returnCommandList() {
         String list = "";
         for (String commandWord : commandsMap.keySet()) {
-            list += commandWord + " ";
+            list += commandWord + ";";
         }
         return list;
     }

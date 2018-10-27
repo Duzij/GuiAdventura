@@ -8,7 +8,6 @@ import logika.commands.*;
 import logika.situations.*;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Class GamePlan - třída představující mapu a stav adventury.
@@ -30,7 +29,13 @@ public class GamePlan {
     private int power;
     private HashSet<String> playerItems = new HashSet();
     private Boolean helpedGuy;
-    private final List<ChangeRoomListener> listeners = new ArrayList();
+    private final List<GamePlanListener> changeRoomListeners = new ArrayList();
+    private final List<GamePlanListener> changePlayerItemsListeners  = new ArrayList();
+    private final List<GamePlanListener> cigarettesCountListeners  = new ArrayList();
+
+    public void addCigaretteCountListener(GamePlanListener listener) {
+        cigarettesCountListeners.add(listener);
+    }
 
     public CommandList getGlobalCommads() {
         return globalCommads;
@@ -44,9 +49,13 @@ public class GamePlan {
 
     private CommandList currentRoomCommads;    // seznam příkazů, které jsou dostupné ve konkrétní místnostech
 
-    public void addListener(ChangeRoomListener listener)
+    public void addChangeRoomListener(GamePlanListener listener)
     {
-        listeners.add(listener);
+        changeRoomListeners.add(listener);
+    }
+    public void addPlayerItemsListener(GamePlanListener listener)
+    {
+        changePlayerItemsListeners.add(listener);
     }
     /**
      *  Konstruktor který vytváří jednotlivé Roomy a propojuje je pomocí východů.
@@ -156,7 +165,7 @@ public class GamePlan {
         currentRoom = Room;
         currentRoomCommads = Room.getRoomCommands();
 
-        for(ChangeRoomListener listener : listeners)
+        for(GamePlanListener listener : changeRoomListeners)
         {
             listener.onChange();
         }
@@ -172,6 +181,11 @@ public class GamePlan {
 
     public void addPlayerItem(String item) {
         getPlayerItems().add(item);
+
+        for (GamePlanListener listener : changePlayerItemsListeners)
+        {
+            listener.onChange();
+        }
     }
 
     public void addPlayerCigarettes(int number) {
@@ -180,6 +194,11 @@ public class GamePlan {
 
     public void setCigarettesCount(int cigarettesCount) {
         this.cigarettesCount = cigarettesCount;
+
+        for (GamePlanListener listener : cigarettesCountListeners)
+        {
+            listener.onChange();
+        }
     }
 
     public void removeCigarettes(int number) {
@@ -219,7 +238,20 @@ public class GamePlan {
     }
 
     public ObservableList getCommands() {
-        String commands = this.getCurrentRoomCommads().returnCommandList() + this.getGlobalCommads().returnCommandList();
-        return FXCollections.observableArrayList(commands.split(" "));
+        String commands = this.getCurrentRoomCommads().returnCommandList() + this.getGlobalCommads().returnCommandList() + this.getCalculatedDirectionsCommands();
+        return FXCollections.observableArrayList(commands.split(";"));
     }
+
+    /**
+     * vrátí všechny možné variace příkazu "jdi"
+     * @return
+     */
+    private String getCalculatedDirectionsCommands() {
+        String text = "";
+        for (Room r : getCurrentRoom().getExits()) {
+            text += "jdi " + r.getName() + ";";
+        }
+        return text;
+    }
+
 }

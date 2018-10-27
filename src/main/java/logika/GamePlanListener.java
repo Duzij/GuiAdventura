@@ -1,5 +1,5 @@
 package logika;
 
-public interface ChangeRoomListener {
+public interface GamePlanListener {
     void onChange();
 }

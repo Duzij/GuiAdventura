@@ -114,6 +114,13 @@ public class Game implements IGame {
         return herniPlan;
     }
 
+    /**
+     * Metoda spouští novou hru
+     */
+    public void startNewGame() {
+        herniPlan = new GamePlan();
+    }
+
 
 }
 
