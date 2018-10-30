@@ -1,6 +1,7 @@
 import com.sun.javafx.stage.StageHelper;
 import impl.org.controlsfx.autocompletion.AutoCompletionTextFieldBinding;
 import impl.org.controlsfx.autocompletion.SuggestionProvider;
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
@@ -22,14 +23,12 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import logika.GamePlan;
 import logika.IGame;
-import org.controlsfx.control.textfield.TextFields;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.ResourceBundle;
-import java.util.Set;
+
+import static impl.org.controlsfx.autocompletion.SuggestionProvider.create;
 
 
 public class MainController implements Initializable {
@@ -42,16 +41,18 @@ public class MainController implements Initializable {
     public Label cigaretteCount;
     public ImageView cigarette;
 
-    private SuggestionProvider<String> provider;
+    private SuggestionProvider provider;
     private IGame game;
-
+    private NavigationController controller;
     /**
      *
      * @param game
      */
-    public void Init(IGame game)
+    void Init(IGame game)
     {
         this.game = game;
+
+        OpenNavigationWindow();
 
         createNewGame(game);
 
@@ -60,23 +61,38 @@ public class MainController implements Initializable {
         Tooltip.install(wallpaper, new Tooltip("plakát"));
         Tooltip.install(cigarette, new Tooltip("počet ciraget"));
 
-        textField.setOnKeyPressed(new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(KeyEvent ke) {
-                KeyCode kc = ke.getCode();
-                if ((kc.equals(KeyCode.ENTER))) {
-                    executeCommand();
-                }
+        textField.setOnKeyPressed(ke -> {
+            KeyCode kc = ke.getCode();
+            if ((kc.equals(KeyCode.ENTER))) {
+                executeCommand();
             }
         });
 
-        textArea.textProperty().addListener(new ChangeListener<Object>() {
-            @Override
-            public void changed(ObservableValue<?> observable, Object oldValue,
-                                Object newValue) {
-                textArea.setScrollTop(Double.MAX_VALUE);
+        //scrolling textArea to bottom
+        textArea.textProperty().addListener((ChangeListener<Object>) (observable, oldValue, newValue) -> textArea.setScrollTop(Double.MAX_VALUE));
+    }
+
+    private void OpenNavigationWindow() {
+        Parent root;
+        try {
+            if(!IsWindowOpened("Navigace"))
+            {
+                FXMLLoader loader = new FXMLLoader(
+                        getClass().getResource(
+                                "navigation.fxml"
+                        )
+                );
+                root = loader.load();
+                Stage stage = new Stage();
+                controller = loader.getController();
+                stage.setTitle("Navigace");
+                stage.setScene(new Scene(root, 960, 560));
+                stage.show();
             }
-        });
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -87,13 +103,13 @@ public class MainController implements Initializable {
         setDirections();
 
         ObservableList autoCompletions = game.getGamePlan().getCommands();
-        provider = SuggestionProvider.create(autoCompletions);
+        provider = create(autoCompletions);
 
         new AutoCompletionTextFieldBinding<>(textField, provider);
 
-        game.getGamePlan().addChangeRoomListener(() -> setDirections());
-        game.getGamePlan().addPlayerItemsListener(() -> setPlayerItems());
-        game.getGamePlan().addCigaretteCountListener(() -> { cigaretteCount.setText(String.valueOf(game.getGamePlan().getCigarettesCount()));});
+        game.getGamePlan().addChangeRoomListener(() -> {setDirections(); setGameNavigation();});
+        game.getGamePlan().addPlayerItemsListener(this::setPlayerItems);
+        game.getGamePlan().addCigaretteCountListener(() -> cigaretteCount.setText(String.valueOf(game.getGamePlan().getCigarettesCount())));
 
         Image cigaretteImage = new Image("cigarette.png", 16,16,false, false);
         cigarette.setImage(cigaretteImage);
@@ -108,6 +124,13 @@ public class MainController implements Initializable {
         wallpaper.setImage(wallpaperImage);
 
         textArea.setText(game.returnGreetings());
+
+
+        setGameNavigation();
+    }
+
+    private void setGameNavigation() {
+        controller.SetNagivationImage(game.getGamePlan().getCurrentRoom());
     }
 
     /**
@@ -133,7 +156,7 @@ public class MainController implements Initializable {
     /**
      * Metoda nastaví výstupy v UI na aktuální
      */
-    public void setDirections()
+    private void setDirections()
     {
         directions.setText(this.game.getGamePlan().getDirections());
     }
@@ -163,17 +186,30 @@ public class MainController implements Initializable {
             provider.addPossibleSuggestions(filteredAutoCompletions);
         }
         else {
+            closeNavigationWindow();
             textArea.setText(game.returnEpilogue());
+        }
+    }
+
+    private void closeNavigationWindow() {
+        for (Stage window : StageHelper.getStages()) {
+            if (window.getTitle().equals("Navigace")) {
+                window.close();
+            }
         }
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        //setting focus on command field
+        Platform.runLater(() -> textField.requestFocus());
     }
+
+
 
     /**
      * Metoda spustí novou hru
-     * @param actionEvent
+     * @param actionEvent událost
      */
     public void createNewGame(ActionEvent actionEvent) {
         game.startNewGame();
@@ -182,18 +218,18 @@ public class MainController implements Initializable {
 
     /**
      * Nejprve se provede kontrola, zda není okno s nápovědou otevřené a poté se nápověda otevře
-     * @param actionEvent
+     * @param actionEvent událost
      */
     public void showHelp(ActionEvent actionEvent) {
         Parent root;
         try {
-            if(!IsHelpWindowOpened())
+            if(!IsWindowOpened("Nápověda"))
             {
-            root = FXMLLoader.load(getClass().getClassLoader().getResource("help.fxml"));
-            Stage stage = new Stage();
-            stage.setTitle("Nápověda");
-            stage.setScene(new Scene(root, 450, 450));
-            stage.show();
+                root = FXMLLoader.load(getClass().getClassLoader().getResource("help.fxml"));
+                Stage stage = new Stage();
+                stage.setTitle("Nápověda");
+                stage.setScene(new Scene(root, 450, 450));
+                stage.show();
             }
         }
         catch (IOException e) {
@@ -202,16 +238,21 @@ public class MainController implements Initializable {
     }
 
     /**
-     * Metoda zjistí zda je okno s nápovědou otevřené
-     * @return
+     * Metoda zjisti, zda je okno s nadpisem jiz otevrene
+     * @param windowTitle název okna
+     * @return hodnota, zda je okno otevřené
      */
-    private boolean IsHelpWindowOpened() {
+    private boolean IsWindowOpened(String windowTitle) {
         ObservableList<Stage> stages = StageHelper.getStages();
         for (Stage window : stages) {
-            if (window.getTitle().equals("Nápověda")) {
+            if (window.getTitle().equals(windowTitle)) {
                 return true;
             }
         }
         return false;
+    }
+
+    void shutdown() {
+        closeNavigationWindow();
     }
 }

@@ -40,7 +40,7 @@ public class ShopEnterSituation extends Situation {
                 "Jeden z vězňů se Vás ptá, co si koupíte.\n" +
                 "Zde je nabídka \n" +
                 "dláto: 19 cigaret\n" +
-                "plagát: 9 cigaret\n" +
+                "plakát: 9 cigaret\n" +
                 "kaldivo: 15 cigaret\n" +
                 "kniha: 5 cigaret\n" +
                 "nůž: 9 cigaret\n";

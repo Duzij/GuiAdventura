@@ -23,6 +23,7 @@ public class Main extends Application {
         primaryStage.setTitle("Adventůra - útěk z vězení");
         primaryStage.setScene(new Scene(root, 600, 400));
         primaryStage.setResizable(false);
+        primaryStage.setOnHidden(e -> c.shutdown());
         primaryStage.show();
     }
 
